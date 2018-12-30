@@ -446,20 +446,6 @@
             <artifactId>mapdb</artifactId>
             <version>${mapdb.version}</version>
             <type>bundle</type>
-            <exclusions>
-                <exclusion>
-                    <artifactId>eclipse-collections-api</artifactId>
-                    <groupId>org.eclipse.collections</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>eclipse-collections</artifactId>
-                    <groupId>org.eclipse.collections</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>eclipse-collections-forkjoin</artifactId>
-                    <groupId>org.eclipse.collections</groupId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
