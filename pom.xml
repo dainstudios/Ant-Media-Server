@@ -223,6 +223,10 @@
             <exclusions>
                 <exclusion>
                     <artifactId>jersey-container-servlet-core</artifactId>
+                    <groupId>com.fasterxml.jackson.dataformat</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>jackson-dataformat-yaml</artifactId>
                     <groupId>org.glassfish.jersey.containers</groupId>
                 </exclusion>
             </exclusions>
@@ -257,23 +261,8 @@
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
-            <artifactId>jcl-over-slf4j</artifactId>
-            <version>${slf4j.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
             <artifactId>jul-to-slf4j</artifactId>
             <version>${slf4j.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>log4j-over-slf4j</artifactId>
-            <version>${slf4j.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-access</artifactId>
-            <version>${logback.version}</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
@@ -311,14 +300,6 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-context-support</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-webmvc</artifactId>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -386,11 +367,6 @@
             <classifier>daemon</classifier>
         </dependency>
         <dependency>
-            <artifactId>mina-integration-beans</artifactId>
-            <groupId>org.apache.mina</groupId>
-            <version>${mina.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.quartz-scheduler</groupId>
             <artifactId>quartz</artifactId>
             <version>${quartz.version}</version>
@@ -450,12 +426,6 @@
             <artifactId>PeriscopeAPI</artifactId>
             <version>${periscope-api.version}</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/com.restfb/restfb -->
-        <dependency>
-            <groupId>com.restfb</groupId>
-            <artifactId>restfb</artifactId>
-            <version>${restfb.version}</version>
-        </dependency>
         <dependency>
             <groupId>com.brsanthu</groupId>
             <artifactId>google-analytics-java</artifactId>
@@ -467,35 +437,8 @@
             <version>${youtube.api.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.glassfish.jersey.containers</groupId>
-            <artifactId>jersey-container-servlet</artifactId>
-            <version>${jersey.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.glassfish.jersey.media</groupId>
-            <artifactId>jersey-media-json-jackson</artifactId>
-            <version>${jersey.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                    <artifactId>jackson-annotations</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
             <groupId>org.glassfish.jersey.media</groupId>
             <artifactId>jersey-media-multipart</artifactId>
-            <version>${jersey.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.glassfish.jersey.ext</groupId>
-            <artifactId>jersey-spring4</artifactId>
-            <version>${jersey.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.glassfish.jersey.media</groupId>
-            <artifactId>jersey-media-sse</artifactId>
             <version>${jersey.version}</version>
         </dependency>
         <dependency>
@@ -503,17 +446,26 @@
             <artifactId>mapdb</artifactId>
             <version>${mapdb.version}</version>
             <type>bundle</type>
+            <exclusions>
+                <exclusion>
+                    <artifactId>eclipse-collections-api</artifactId>
+                    <groupId>org.eclipse.collections</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>eclipse-collections</artifactId>
+                    <groupId>org.eclipse.collections</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>eclipse-collections-forkjoin</artifactId>
+                    <groupId>org.eclipse.collections</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
             <version>2.11.0</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>javax.websocket</groupId>
-            <artifactId>javax.websocket-api</artifactId>
-            <version>1.1</version>
         </dependency>
         <dependency>
             <groupId>org.awaitility</groupId>
