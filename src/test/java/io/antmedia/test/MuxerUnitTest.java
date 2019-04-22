@@ -1282,4 +1282,114 @@ public class MuxerUnitTest extends AbstractJUnit4SpringContextTests{
 		return appSettings;
 	}
 
+	@Test
+	public void testRecording(){
+		testRecording("dasss",false,true);
+	}
+
+	public File testRecording(String name, boolean shortVersion, boolean checkDuration){
+		logger.info("running testMp4Muxing");
+
+		if (appScope == null) {
+			appScope = (WebScope) applicationContext.getBean("web.scope");
+			logger.debug("Application / web scope: {}", appScope);
+			assertTrue(appScope.getDepth() == 1);
+		}
+
+		MuxAdaptor muxAdaptor =  MuxAdaptor.initializeMuxAdaptor(null, false, appScope);
+		getAppSettings().setMp4MuxingEnabled(false);
+		getAppSettings().setHlsMuxingEnabled(false);
+
+		logger.info("HLS muxing enabled {}", appSettings.isHlsMuxingEnabled());
+
+		//File file = new File(getResource("test.mp4").getFile());
+		File file = null;
+
+		try {
+
+			QuartzSchedulingService scheduler = (QuartzSchedulingService) applicationContext.getBean(QuartzSchedulingService.BEAN_NAME);
+			assertNotNull(scheduler);
+
+			//by default, stream source job is scheduled
+			assertEquals(scheduler.getScheduledJobNames().size(), 1);
+
+			if (shortVersion) {
+				file = new File("target/test-classes/test_short.flv"); //ResourceUtils.getFile(this.getClass().getResource("test.flv"));
+			}
+			else {
+				file = new File("target/test-classes/test.flv"); //ResourceUtils.getFile(this.getClass().getResource("test.flv"));
+			}
+
+			final FLVReader flvReader = new FLVReader(file);
+
+			logger.debug("f path:" + file.getAbsolutePath());
+			assertTrue(file.exists());
+
+			boolean result = muxAdaptor.init(appScope, name, false);
+
+			assertTrue(result);
+
+
+			muxAdaptor.start();
+
+			int packetNumber = 0;
+			while (flvReader.hasMoreTags())
+			{
+				ITag readTag = flvReader.readTag();
+				StreamPacket streamPacket = new StreamPacket(readTag);
+				muxAdaptor.packetReceived(null, streamPacket);
+				if(packetNumber == 10){
+					muxAdaptor.startRecording(appScope,name,false);
+				}
+				packetNumber++;
+				if(packetNumber%1000==0)
+					logger.info(""+packetNumber);
+			}
+
+			for (String jobName : scheduler.getScheduledJobNames()) {
+				logger.info("testMP4Muxing -- Scheduler job name {}", jobName);
+			}
+
+			//2 jobs in the scheduler one of them is the job streamFetcherManager and and the other one is
+			//job in MuxAdaptor
+			Awaitility.await().atMost(90, TimeUnit.SECONDS).until(()-> scheduler.getScheduledJobNames().size() == 2);
+			Awaitility.await().atMost(90, TimeUnit.SECONDS).until(()-> muxAdaptor.isRecording());
+
+			assertEquals(2, scheduler.getScheduledJobNames().size());
+			assertTrue(muxAdaptor.isRecording());
+
+			muxAdaptor.stop();
+
+			flvReader.close();
+
+
+			Awaitility.await().atMost(20, TimeUnit.SECONDS).until(()-> !muxAdaptor.isRecording());
+
+			assertFalse(muxAdaptor.isRecording());
+
+			// if there is listenerHookURL, a task will be scheduled, so wait a little to make the call happen
+			for (String jobName : scheduler.getScheduledJobNames()) {
+				logger.info("--Scheduler job name {}", jobName);
+			}
+
+			Awaitility.await().atMost(20, TimeUnit.SECONDS).until(()-> scheduler.getScheduledJobNames().size() == 1);
+			assertEquals(1, scheduler.getScheduledJobNames().size());
+			int duration = 697000;
+			if (shortVersion) {
+				duration = 10080;
+			}
+
+			if (checkDuration) {
+				assertTrue(MuxingTest.testFile(muxAdaptor.getMuxerList().get(0).getFile().getAbsolutePath(), duration));
+			}
+			return muxAdaptor.getMuxerList().get(0).getFile();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			fail("exception:" + e );
+		}
+		logger.info("leaving testMp4Muxing");
+		return null;
+	}
+
 }
