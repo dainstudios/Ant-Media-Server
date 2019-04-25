@@ -587,7 +587,7 @@ public class MuxerUnitTest extends AbstractJUnit4SpringContextTests{
 		}
 
 		MuxAdaptor muxAdaptor =  MuxAdaptor.initializeMuxAdaptor(null, false, appScope);
-		getAppSettings().setMp4MuxingEnabled(true);
+		getAppSettings().setMp4MuxingEnabled(false);
 		getAppSettings().setHlsMuxingEnabled(false);
 
 		logger.info("HLS muxing enabled {}", appSettings.isHlsMuxingEnabled());
@@ -622,12 +622,15 @@ public class MuxerUnitTest extends AbstractJUnit4SpringContextTests{
 
 			muxAdaptor.start();
 
+			for (String jobName : scheduler.getScheduledJobNames()) {
+				logger.info("testMP4Muxing2 -- Scheduler job name {}", jobName);
+			}
+
 			while (flvReader.hasMoreTags()) 
 			{
 				ITag readTag = flvReader.readTag();
 				StreamPacket streamPacket = new StreamPacket(readTag);
 				muxAdaptor.packetReceived(null, streamPacket);
-
 			}
 
 			for (String jobName : scheduler.getScheduledJobNames()) {
@@ -1282,12 +1285,13 @@ public class MuxerUnitTest extends AbstractJUnit4SpringContextTests{
 		return appSettings;
 	}
 
+
 	@Test
 	public void testRecording(){
-		testRecording("dasss",false,true);
+		testRecording("dasss",true);
 	}
 
-	public File testRecording(String name, boolean shortVersion, boolean checkDuration){
+	public void testRecording(String name, boolean checkDuration){
 		logger.info("running testMp4Muxing");
 
 		if (appScope == null) {
@@ -1313,37 +1317,34 @@ public class MuxerUnitTest extends AbstractJUnit4SpringContextTests{
 			//by default, stream source job is scheduled
 			assertEquals(scheduler.getScheduledJobNames().size(), 1);
 
-			if (shortVersion) {
-				file = new File("target/test-classes/test_short.flv"); //ResourceUtils.getFile(this.getClass().getResource("test.flv"));
-			}
-			else {
-				file = new File("target/test-classes/test.flv"); //ResourceUtils.getFile(this.getClass().getResource("test.flv"));
-			}
+			file = new File("target/test-classes/test.flv");
 
 			final FLVReader flvReader = new FLVReader(file);
 
 			logger.debug("f path:" + file.getAbsolutePath());
 			assertTrue(file.exists());
 
-			boolean result = muxAdaptor.init(appScope, name, false);
-
-			assertTrue(result);
-
-
-			muxAdaptor.start();
-
+			logger.info("1");
+			for (String jobName : scheduler.getScheduledJobNames()) {
+				logger.info("testMP4Muxing1 -- Scheduler job name {}", jobName);
+			}
+			logger.info("2");
 			int packetNumber = 0;
 			while (flvReader.hasMoreTags())
 			{
+
 				ITag readTag = flvReader.readTag();
+
 				StreamPacket streamPacket = new StreamPacket(readTag);
 				muxAdaptor.packetReceived(null, streamPacket);
-				if(packetNumber == 10){
+
+				if(packetNumber == 40000){
+					logger.info("6");
 					muxAdaptor.startRecording(appScope,name,false);
+					Thread.sleep(3000);
+					logger.info("7");
 				}
 				packetNumber++;
-				if(packetNumber%1000==0)
-					logger.info(""+packetNumber);
 			}
 
 			for (String jobName : scheduler.getScheduledJobNames()) {
@@ -1355,9 +1356,11 @@ public class MuxerUnitTest extends AbstractJUnit4SpringContextTests{
 			Awaitility.await().atMost(90, TimeUnit.SECONDS).until(()-> scheduler.getScheduledJobNames().size() == 2);
 			Awaitility.await().atMost(90, TimeUnit.SECONDS).until(()-> muxAdaptor.isRecording());
 
+			logger.info("9");
 			assertEquals(2, scheduler.getScheduledJobNames().size());
 			assertTrue(muxAdaptor.isRecording());
 
+			muxAdaptor.stopRecording();
 			muxAdaptor.stop();
 
 			flvReader.close();
@@ -1374,22 +1377,12 @@ public class MuxerUnitTest extends AbstractJUnit4SpringContextTests{
 
 			Awaitility.await().atMost(20, TimeUnit.SECONDS).until(()-> scheduler.getScheduledJobNames().size() == 1);
 			assertEquals(1, scheduler.getScheduledJobNames().size());
-			int duration = 697000;
-			if (shortVersion) {
-				duration = 10080;
-			}
-
-			if (checkDuration) {
-				assertTrue(MuxingTest.testFile(muxAdaptor.getMuxerList().get(0).getFile().getAbsolutePath(), duration));
-			}
-			return muxAdaptor.getMuxerList().get(0).getFile();
 		}
 		catch (Exception e) {
 			e.printStackTrace();
 			fail("exception:" + e );
 		}
 		logger.info("leaving testMp4Muxing");
-		return null;
 	}
 
 }
